@@ -3,29 +3,35 @@
 require 'spec_helper'
 
 describe Api::ConnectionController do
+  subject { response }
+
   let(:user) { create(:user) }
   let(:server) { create(:server) }
-  let(:attrs) { { login: user.vpn_login, hostname: server.hostname, traffic_in: '10', traffic_out: '15' } }
-  subject { response }
+  let(:attrs) do
+    { login: user.vpn_login,
+      hostname: server.hostname,
+      traffic_in: '10',
+      traffic_out: '15' }
+  end
 
   it_behaves_like 'validating signature', :connect
   it_behaves_like 'validating signature', :disconnect
 
   describe 'api calls' do
     before do
-      allow_any_instance_of(Api::ConnectionController).to receive(:valid_api_call?).and_return(true)
+      allow_any_instance_of(described_class).to receive(:valid_api_call?).and_return(true)
     end
 
     describe 'POST #connect' do
       it 'calls connector' do
         allow_any_instance_of(Connector).to receive(:invoke).once
-        post :connect, attrs
+        post :connect, params: attrs
       end
 
       it 'passed connect action to connector' do
         connector = Connector.new(attrs.merge!(action: 'connect'))
         expect(Connector).to receive(:new).with(attrs).and_return(connector)
-        post :connect, attrs
+        post :connect, params: attrs
       end
 
       context 'user has options' do
@@ -35,7 +41,7 @@ describe Api::ConnectionController do
           option = create(:active_option)
           user.plan.options << option
           user.options << option
-          post :connect, params
+          post :connect, params: params
         end
 
         it { is_expected.to be_json }
@@ -49,13 +55,13 @@ describe Api::ConnectionController do
     describe 'POST #disconnect' do
       it 'calls connector' do
         allow_any_instance_of(Connector).to receive(:invoke).once
-        post :disconnect, attrs
+        post :disconnect, params: attrs
       end
 
       it 'passed disconnect action to connector' do
         connector = Connector.new(attrs.merge!(action: 'disconnect'))
         expect(Connector).to receive(:new).with(attrs).and_return(connector)
-        post :disconnect, attrs
+        post :disconnect, params: attrs
       end
     end
   end

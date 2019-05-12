@@ -4,6 +4,7 @@ require 'rails_helper'
 
 describe Admin::ConnectionsController do
   subject { response }
+
   login_admin
 
   describe 'GET #index' do
@@ -33,9 +34,9 @@ describe Admin::ConnectionsController do
   describe 'GET #show' do
     let(:connection) { create(:connect) }
 
-    before { get :show, id: connection.id }
+    before { get :show, params: { id: connection.id } }
 
-    it { is_expected.to be_success }
+    it { is_expected.to be_successful }
     it { is_expected.to render_template :show }
     it { expect(response.status).to eq 200 }
   end
